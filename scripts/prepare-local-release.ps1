@@ -12,6 +12,13 @@ if (Test-Path $out) {
 
 New-Item -ItemType Directory -Path $out | Out-Null
 
+$launcherPath = Join-Path $root "CapiClub Inventario.exe"
+try {
+  & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root "scripts\windows\crear-ejecutable.ps1") -OutputPath $launcherPath
+} catch {
+  Write-Warning "No se pudo crear el ejecutable. La entrega seguira usando los scripts .bat. Detalle: $_"
+}
+
 $items = @(
   "src",
   "prisma",
@@ -42,15 +49,19 @@ Copy-Item -LiteralPath (Join-Path $root "scripts\windows\actualizar-capiclub.bat
 Copy-Item -LiteralPath (Join-Path $root "scripts\windows\detener-capiclub.bat") -Destination (Join-Path $out "detener-capiclub.bat")
 Copy-Item -LiteralPath (Join-Path $root "scripts\windows\verificar-requisitos.bat") -Destination (Join-Path $out "verificar-requisitos.bat")
 
+if (Test-Path $launcherPath) {
+  Copy-Item -LiteralPath $launcherPath -Destination (Join-Path $out "CapiClub Inventario.exe")
+}
+
 @"
 CapiClub Inventario - Entrega local
 
 1. Instala Node.js LTS desde https://nodejs.org/ si no esta instalado.
 2. Ejecuta instalar.bat.
-3. Ejecuta iniciar-capiclub.bat.
+3. Ejecuta CapiClub Inventario.exe.
 4. Abre http://localhost:3000 si el navegador no se abre solo.
 
-Si esta carpeta fue instalada con Git, iniciar-capiclub.bat buscara actualizaciones
+Si esta carpeta fue instalada con Git, CapiClub Inventario.exe buscara actualizaciones
 del repositorio antes de abrir el sistema.
 
 Usuario inicial por defecto:

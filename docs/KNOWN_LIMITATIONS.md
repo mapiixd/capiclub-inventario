@@ -7,7 +7,7 @@
 - No hay integracion con terminales bancarios.
 - No hay sincronizacion entre sucursales.
 - La restauracion de respaldo requiere reiniciar la aplicacion.
-- El entregable usa scripts `.bat`, no un instalador `.exe` nativo.
+- El entregable usa un lanzador `.exe`, no un instalador Windows nativo.
 - Las actualizaciones automaticas requieren instalacion mediante Git y acceso al repositorio.
 - El cambio de contrasena desde UI queda como mejora posterior.
 

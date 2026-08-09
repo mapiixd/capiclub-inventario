@@ -31,6 +31,7 @@ powershell -ExecutionPolicy Bypass -File scripts/prepare-local-release.ps1
 
 La carpeta `dist-local/` incluira:
 
+- `CapiClub Inventario.exe`
 - `instalar.bat`
 - `iniciar-capiclub.bat`
 - `actualizar-capiclub.bat`
@@ -38,6 +39,12 @@ La carpeta `dist-local/` incluira:
 - `verificar-requisitos.bat`
 
 Si la instalacion del cliente conserva `.git`, `iniciar-capiclub.bat` intentara hacer `git pull --ff-only` desde `origin/main` antes de iniciar. Si se entrega como ZIP, omitira la actualizacion automatica.
+
+Para regenerar el lanzador `.exe`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/windows/crear-ejecutable.ps1
+```
 
 ## Usuario inicial
 
