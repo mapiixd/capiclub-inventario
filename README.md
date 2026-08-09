@@ -33,8 +33,11 @@ La carpeta `dist-local/` incluira:
 
 - `instalar.bat`
 - `iniciar-capiclub.bat`
+- `actualizar-capiclub.bat`
 - `detener-capiclub.bat`
 - `verificar-requisitos.bat`
+
+Si la instalacion del cliente conserva `.git`, `iniciar-capiclub.bat` intentara hacer `git pull --ff-only` desde `origin/main` antes de iniciar. Si se entrega como ZIP, omitira la actualizacion automatica.
 
 ## Usuario inicial
 

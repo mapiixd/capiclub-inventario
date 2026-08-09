@@ -11,6 +11,13 @@ if errorlevel 1 (
   exit /b 1
 )
 
+call scripts\windows\actualizar-capiclub.bat
+if errorlevel 1 (
+  echo La actualizacion fallo. Revisa el mensaje anterior.
+  pause
+  exit /b 1
+)
+
 if not exist ".next" (
   echo No existe build de produccion. Ejecuta instalar.bat primero.
   pause

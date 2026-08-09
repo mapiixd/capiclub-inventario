@@ -38,6 +38,7 @@ foreach ($item in $items) {
 
 Copy-Item -LiteralPath (Join-Path $root "scripts\windows\instalar.bat") -Destination (Join-Path $out "instalar.bat")
 Copy-Item -LiteralPath (Join-Path $root "scripts\windows\iniciar-capiclub.bat") -Destination (Join-Path $out "iniciar-capiclub.bat")
+Copy-Item -LiteralPath (Join-Path $root "scripts\windows\actualizar-capiclub.bat") -Destination (Join-Path $out "actualizar-capiclub.bat")
 Copy-Item -LiteralPath (Join-Path $root "scripts\windows\detener-capiclub.bat") -Destination (Join-Path $out "detener-capiclub.bat")
 Copy-Item -LiteralPath (Join-Path $root "scripts\windows\verificar-requisitos.bat") -Destination (Join-Path $out "verificar-requisitos.bat")
 
@@ -48,6 +49,9 @@ CapiClub Inventario - Entrega local
 2. Ejecuta instalar.bat.
 3. Ejecuta iniciar-capiclub.bat.
 4. Abre http://localhost:3000 si el navegador no se abre solo.
+
+Si esta carpeta fue instalada con Git, iniciar-capiclub.bat buscara actualizaciones
+del repositorio antes de abrir el sistema.
 
 Usuario inicial por defecto:
 admin@capiclub.local
