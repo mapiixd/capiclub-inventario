@@ -4,6 +4,7 @@ import { MetricCard, PageHeader, Panel, PanelHeader, StatusBadge } from "@/compo
 import { requireUserWithPermissions } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
 import { formatCurrency, formatDateTime } from "@/lib/format";
+import { isReportableSaleStatus } from "@/lib/reports/metrics";
 import { getProductStockMap } from "@/server/inventory/stock";
 import { SaleForm } from "./sale-form";
 
@@ -50,7 +51,8 @@ export default async function SalesPage() {
     }))
     .filter((product) => !product.tracksStock || product.stock > 0);
   const latestSalesTotal = latestSales.reduce(
-    (total, sale) => total + sale.finalTotal,
+    (total, sale) =>
+      isReportableSaleStatus(sale.status) ? total + sale.finalTotal : total,
     0,
   );
 
@@ -66,7 +68,7 @@ export default async function SalesPage() {
 
         <div className="grid gap-4 md:grid-cols-3">
           <MetricCard label="Ultimas ventas" value={String(latestSales.length)} detail="Registros recientes cargados" />
-          <MetricCard label="Monto reciente" value={formatCurrency(latestSalesTotal)} detail="Suma de las ventas listadas" tone="primary" />
+          <MetricCard label="Monto reciente" value={formatCurrency(latestSalesTotal)} detail="Suma sin anuladas ni devueltas" tone="primary" />
           <MetricCard label="Productos vendibles" value={String(sellableProducts.length)} detail="Activos con stock o sin control" tone="accent" />
         </div>
 
