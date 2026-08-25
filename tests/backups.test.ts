@@ -18,6 +18,7 @@ describe("backup paths", () => {
 
     expect(fileName).toBe("capiclub-backup-2026-08-07T12-30-00-000Z.db");
     expect(isSafeBackupFileName(fileName)).toBe(true);
+    expect(isSafeBackupFileName("capiclub-auto-update-2026-08-24T23-30-00-000Z.db")).toBe(true);
     expect(isSafeBackupFileName("../dev.db")).toBe(false);
   });
 

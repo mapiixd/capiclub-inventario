@@ -1,3 +1,8 @@
+import {
+  calculatePurchaseTotals,
+  type PurchaseTaxMode,
+} from "@/lib/purchases/totals";
+
 export type PurchaseCartProduct = {
   id: string;
   sku: string;
@@ -66,16 +71,27 @@ export function calculatePurchaseCartTotals({
   items,
   discount,
   additionalCosts,
+  isFreeOfCharge,
+  taxMode,
+  taxRate,
 }: {
   items: PurchaseCartItem[];
   discount: number;
   additionalCosts: number;
+  isFreeOfCharge: boolean;
+  taxMode: PurchaseTaxMode;
+  taxRate: number;
 }) {
-  const subtotal = items.reduce(
-    (total, item) => total + item.quantity * item.unitCost,
-    0,
-  );
-  const total = Math.max(0, subtotal - discount + additionalCosts);
-
-  return { subtotal, total };
+  try {
+    return calculatePurchaseTotals({
+      items,
+      discount,
+      additionalCosts,
+      isFreeOfCharge,
+      taxMode,
+      taxRate,
+    });
+  } catch {
+    return { subtotal: 0, taxAmount: 0, total: 0 };
+  }
 }

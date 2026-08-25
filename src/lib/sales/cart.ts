@@ -4,6 +4,7 @@ export type CartProduct = {
   name: string;
   salePrice: number;
   stock: number;
+  tracksStock: boolean;
 };
 
 export type CartItem = {
@@ -11,6 +12,7 @@ export type CartItem = {
   sku: string;
   name: string;
   stock: number;
+  tracksStock: boolean;
   quantity: number;
   unitPrice: number;
   lineDiscount: number;
@@ -28,7 +30,12 @@ export function addProductToCart(items: CartItem[], product: CartProduct) {
   if (existingItem) {
     return items.map((item) =>
       item.productId === product.id
-        ? { ...item, quantity: Math.min(item.quantity + 1, item.stock) }
+        ? {
+            ...item,
+            quantity: product.tracksStock
+              ? Math.min(item.quantity + 1, item.stock)
+              : item.quantity + 1,
+          }
         : item,
     );
   }
@@ -40,6 +47,7 @@ export function addProductToCart(items: CartItem[], product: CartProduct) {
       sku: product.sku,
       name: product.name,
       stock: product.stock,
+      tracksStock: product.tracksStock,
       quantity: 1,
       unitPrice: product.salePrice,
       lineDiscount: 0,
@@ -54,7 +62,12 @@ export function updateCartItemQuantity(
 ) {
   return items.map((item) =>
     item.productId === productId
-      ? { ...item, quantity: Math.max(1, Math.min(quantity, item.stock)) }
+      ? {
+          ...item,
+          quantity: item.tracksStock
+            ? Math.max(1, Math.min(quantity, item.stock))
+            : Math.max(1, quantity),
+        }
       : item,
   );
 }

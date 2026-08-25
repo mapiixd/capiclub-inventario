@@ -88,6 +88,7 @@ async function completeSale(formData: FormData) {
         id: true,
         name: true,
         averageCost: true,
+        tracksStock: true,
       },
     });
     const productMap = new Map(products.map((product) => [product.id, product]));
@@ -180,9 +181,11 @@ async function completeSale(formData: FormData) {
       }
 
       const previousStock = await getProductStock(item.productId, tx);
-      const resultingStock = previousStock - item.quantity;
+      const resultingStock = product.tracksStock
+        ? previousStock - item.quantity
+        : previousStock;
 
-      if (resultingStock < 0) {
+      if (product.tracksStock && resultingStock < 0) {
         throw new Error(`Stock insuficiente para ${product.name}.`);
       }
 
@@ -198,20 +201,22 @@ async function completeSale(formData: FormData) {
         },
       });
 
-      await tx.inventoryMovement.create({
-        data: {
-          productId: item.productId,
-          quantity: -item.quantity,
-          type: InventoryMovementType.SALE,
-          userId: currentUser.id,
-          sourceEntity: "Sale",
-          sourceEntityId: sale.id,
-          saleId: sale.id,
-          reason: `Venta #${sale.visibleNumber}`,
-          previousStock,
-          resultingStock,
-        },
-      });
+      if (product.tracksStock) {
+        await tx.inventoryMovement.create({
+          data: {
+            productId: item.productId,
+            quantity: -item.quantity,
+            type: InventoryMovementType.SALE,
+            userId: currentUser.id,
+            sourceEntity: "Sale",
+            sourceEntityId: sale.id,
+            saleId: sale.id,
+            reason: `Venta #${sale.visibleNumber}`,
+            previousStock,
+            resultingStock,
+          },
+        });
+      }
     }
 
     for (const payment of parsed.data.payments) {
@@ -282,6 +287,7 @@ async function voidSale(formData: FormData) {
       include: {
         items: {
           include: {
+            product: { select: { tracksStock: true } },
             returnItems: true,
           },
         },
@@ -314,8 +320,6 @@ async function voidSale(formData: FormData) {
     });
 
     for (const item of sale.items) {
-      const previousStock = await getProductStock(item.productId, tx);
-      const resultingStock = previousStock + item.quantity;
       const originalMovement = sale.inventoryMovements.find(
         (movement) =>
           movement.productId === item.productId &&
@@ -337,21 +341,26 @@ async function voidSale(formData: FormData) {
         },
       });
 
-      await tx.inventoryMovement.create({
-        data: {
-          productId: item.productId,
-          quantity: item.quantity,
-          type: InventoryMovementType.SALE_VOID,
-          userId: currentUser.id,
-          sourceEntity: "SaleReturn",
-          sourceEntityId: saleReturn.id,
-          saleId: sale.id,
-          reason: `Anulacion venta #${sale.visibleNumber}: ${parsed.data.reason}`,
-          previousStock,
-          resultingStock,
-          reversedMovementId: originalMovement?.id,
-        },
-      });
+      if (item.product.tracksStock) {
+        const previousStock = await getProductStock(item.productId, tx);
+        const resultingStock = previousStock + item.quantity;
+
+        await tx.inventoryMovement.create({
+          data: {
+            productId: item.productId,
+            quantity: item.quantity,
+            type: InventoryMovementType.SALE_VOID,
+            userId: currentUser.id,
+            sourceEntity: "SaleReturn",
+            sourceEntityId: saleReturn.id,
+            saleId: sale.id,
+            reason: `Anulacion venta #${sale.visibleNumber}: ${parsed.data.reason}`,
+            previousStock,
+            resultingStock,
+            reversedMovementId: originalMovement?.id,
+          },
+        });
+      }
     }
 
     const updatedSale = await tx.sale.update({
@@ -409,6 +418,7 @@ async function createSaleReturn(formData: FormData) {
       include: {
         items: {
           include: {
+            product: { select: { tracksStock: true } },
             returnItems: true,
           },
         },
@@ -465,8 +475,6 @@ async function createSaleReturn(formData: FormData) {
         quantity: returnItem.quantity,
         unitAmount: item.finalUnitPrice,
       });
-      const previousStock = await getProductStock(item.productId, tx);
-      const resultingStock = previousStock + returnItem.quantity;
 
       await tx.saleReturnItem.create({
         data: {
@@ -480,20 +488,25 @@ async function createSaleReturn(formData: FormData) {
         },
       });
 
-      await tx.inventoryMovement.create({
-        data: {
-          productId: item.productId,
-          quantity: returnItem.quantity,
-          type: InventoryMovementType.CUSTOMER_RETURN,
-          userId: currentUser.id,
-          sourceEntity: "SaleReturn",
-          sourceEntityId: saleReturn.id,
-          saleId: sale.id,
-          reason: `Devolucion venta #${sale.visibleNumber}: ${parsed.data.reason}`,
-          previousStock,
-          resultingStock,
-        },
-      });
+      if (item.product.tracksStock) {
+        const previousStock = await getProductStock(item.productId, tx);
+        const resultingStock = previousStock + returnItem.quantity;
+
+        await tx.inventoryMovement.create({
+          data: {
+            productId: item.productId,
+            quantity: returnItem.quantity,
+            type: InventoryMovementType.CUSTOMER_RETURN,
+            userId: currentUser.id,
+            sourceEntity: "SaleReturn",
+            sourceEntityId: saleReturn.id,
+            saleId: sale.id,
+            reason: `Devolucion venta #${sale.visibleNumber}: ${parsed.data.reason}`,
+            previousStock,
+            resultingStock,
+          },
+        });
+      }
     }
 
     const updatedItems = await tx.saleItem.findMany({

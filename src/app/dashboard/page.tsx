@@ -56,7 +56,7 @@ export default async function DashboardPage({
   todayEnd.setHours(23, 59, 59, 999);
 
   const products = await prisma.product.findMany({
-    where: { status: "ACTIVE" },
+    where: { status: "ACTIVE", tracksStock: true },
     select: {
       id: true,
       sku: true,

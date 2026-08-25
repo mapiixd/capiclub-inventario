@@ -75,6 +75,10 @@ export function ProductCreateForm({
       <Field label="Ultimo costo" name="lastPurchaseCost" type="number" defaultValue="0" />
       <Field label="Precio venta" name="salePrice" type="number" defaultValue="0" />
       <Field label="Stock minimo" name="minimumStock" type="number" defaultValue="0" />
+      <label className="flex items-center gap-2 rounded border border-[var(--border)] px-3 py-2 text-sm">
+        <input className="h-4 w-4" name="tracksStock" type="checkbox" defaultChecked />
+        Controla stock
+      </label>
       <label className="grid gap-1 text-sm">
         Notas
         <textarea className="min-h-20 rounded border border-[var(--border)] px-3 py-2" name="notes" />

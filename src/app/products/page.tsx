@@ -69,9 +69,9 @@ export default async function ProductsPage({
   const stockMap = await getProductStockMap(products.map((product) => product.id));
   const lowStockCount = products.filter((product) => {
     const stock = stockMap.get(product.id) ?? 0;
-    return product.minimumStock > 0 && stock > 0 && stock <= product.minimumStock;
+    return product.tracksStock && product.minimumStock > 0 && stock > 0 && stock <= product.minimumStock;
   }).length;
-  const noStockCount = products.filter((product) => (stockMap.get(product.id) ?? 0) === 0).length;
+  const noStockCount = products.filter((product) => product.tracksStock && (stockMap.get(product.id) ?? 0) === 0).length;
 
   return (
     <AppShell user={currentUser}>
@@ -153,7 +153,11 @@ export default async function ProductsPage({
                     <td className="p-3">{product.game?.name ?? ""}</td>
                     <td className="p-3">{product.category?.name ?? ""}</td>
                     <td className="p-3">
-                      <StockBadge minimumStock={product.minimumStock} stock={stockMap.get(product.id) ?? 0} />
+                      <StockBadge
+                        minimumStock={product.minimumStock}
+                        stock={stockMap.get(product.id) ?? 0}
+                        tracksStock={product.tracksStock}
+                      />
                     </td>
                     <td className="p-3">{formatCurrency(product.salePrice)}</td>
                     <td className="p-3">
@@ -199,7 +203,19 @@ export default async function ProductsPage({
   );
 }
 
-function StockBadge({ stock, minimumStock }: { stock: number; minimumStock: number }) {
+function StockBadge({
+  stock,
+  minimumStock,
+  tracksStock,
+}: {
+  stock: number;
+  minimumStock: number;
+  tracksStock: boolean;
+}) {
+  if (!tracksStock) {
+    return <StatusBadge tone="accent">Sin control</StatusBadge>;
+  }
+
   const tone =
     stock === 0
       ? "danger"

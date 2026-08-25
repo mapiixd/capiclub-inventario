@@ -9,7 +9,10 @@ La aplicacion reemplaza una solucion pensada originalmente en Excel. Por eso deb
 ## Objetivos funcionales
 
 - Gestionar productos TCG, accesorios, merchandising, servicios y otros articulos.
+- Permitir productos vendibles sin control de stock para singles genericos.
 - Registrar compras a proveedores y recepcionarlas.
+- Registrar compras sin costo para ingresar stock gratuito.
+- Registrar IVA en compras con modo neto o IVA incluido.
 - Registrar ventas con multiples productos, descuentos y pagos mixtos.
 - Controlar inventario mediante movimientos historicos.
 - Gestionar caja con apertura, movimientos y cierre.
@@ -80,4 +83,3 @@ La aplicacion reemplaza una solucion pensada originalmente en Excel. Por eso deb
 18. Dos solicitudes simultaneas no pueden vender la misma ultima unidad.
 19. El margen historico de una venta no cambia al registrar una compra posterior.
 20. Los productos con movimientos no pueden eliminarse.
-

@@ -28,7 +28,7 @@ export default async function SalesPage() {
     prisma.product.findMany({
       where: { status: "ACTIVE" },
       orderBy: { name: "asc" },
-      select: { id: true, sku: true, name: true, salePrice: true },
+      select: { id: true, sku: true, name: true, salePrice: true, tracksStock: true },
       take: 200,
     }),
     prisma.paymentMethod.findMany({
@@ -48,7 +48,7 @@ export default async function SalesPage() {
       ...product,
       stock: stockMap.get(product.id) ?? 0,
     }))
-    .filter((product) => product.stock > 0);
+    .filter((product) => !product.tracksStock || product.stock > 0);
   const latestSalesTotal = latestSales.reduce(
     (total, sale) => total + sale.finalTotal,
     0,
@@ -61,13 +61,13 @@ export default async function SalesPage() {
           eyebrow="Punto de venta"
           title="Ventas"
           description="Registra ventas con control de stock, pagos exactos y movimientos trazables."
-          actions={<StatusBadge tone="success">{sellableProducts.length} productos disponibles</StatusBadge>}
+          actions={<StatusBadge tone="success">{sellableProducts.length} productos vendibles</StatusBadge>}
         />
 
         <div className="grid gap-4 md:grid-cols-3">
           <MetricCard label="Ultimas ventas" value={String(latestSales.length)} detail="Registros recientes cargados" />
           <MetricCard label="Monto reciente" value={formatCurrency(latestSalesTotal)} detail="Suma de las ventas listadas" tone="primary" />
-          <MetricCard label="Productos vendibles" value={String(sellableProducts.length)} detail="Activos con stock positivo" tone="accent" />
+          <MetricCard label="Productos vendibles" value={String(sellableProducts.length)} detail="Activos con stock o sin control" tone="accent" />
         </div>
 
         <SaleForm products={sellableProducts} paymentMethods={paymentMethods} />

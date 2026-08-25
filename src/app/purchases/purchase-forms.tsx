@@ -13,6 +13,10 @@ import {
   updatePurchaseCartItemUnitCost,
   type PurchaseCartItem,
 } from "@/lib/purchases/cart";
+import {
+  defaultPurchaseTaxRate,
+  type PurchaseTaxMode,
+} from "@/lib/purchases/totals";
 import { formatCurrency } from "@/lib/format";
 import {
   createPurchaseFormAction,
@@ -50,14 +54,20 @@ export function PurchaseCreateForm({
   const [items, setItems] = useState<PurchaseCartItem[]>([]);
   const [discount, setDiscount] = useState(0);
   const [additionalCosts, setAdditionalCosts] = useState(0);
+  const [isFreeOfCharge, setIsFreeOfCharge] = useState(false);
+  const [taxMode, setTaxMode] = useState<PurchaseTaxMode>("NET");
+  const [taxRate, setTaxRate] = useState(defaultPurchaseTaxRate);
   const totals = useMemo(
     () =>
       calculatePurchaseCartTotals({
         items,
         discount,
         additionalCosts,
+        isFreeOfCharge,
+        taxMode,
+        taxRate,
       }),
-    [additionalCosts, discount, items],
+    [additionalCosts, discount, isFreeOfCharge, items, taxMode, taxRate],
   );
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -81,6 +91,9 @@ export function PurchaseCreateForm({
         setQuery("");
         setDiscount(0);
         setAdditionalCosts(0);
+        setIsFreeOfCharge(false);
+        setTaxMode("NET");
+        setTaxRate(defaultPurchaseTaxRate);
       }, 0);
 
       return () => window.clearTimeout(timeoutId);
@@ -99,8 +112,27 @@ export function PurchaseCreateForm({
 
   function updateUnitCost(productId: string, unitCost: number) {
     setItems((currentItems) =>
-      updatePurchaseCartItemUnitCost(currentItems, productId, unitCost),
+      updatePurchaseCartItemUnitCost(
+        currentItems,
+        productId,
+        isFreeOfCharge ? 0 : unitCost,
+      ),
     );
+  }
+
+  function toggleFreeOfCharge(checked: boolean) {
+    setIsFreeOfCharge(checked);
+    if (checked) {
+      setDiscount(0);
+      setAdditionalCosts(0);
+      setTaxRate(0);
+      setItems((currentItems) =>
+        currentItems.map((item) => ({ ...item, unitCost: 0 })),
+      );
+      return;
+    }
+
+    setTaxRate(defaultPurchaseTaxRate);
   }
 
   function removeItem(productId: string) {
@@ -120,6 +152,9 @@ export function PurchaseCreateForm({
       ))}
       <input name="discount" type="hidden" value={discount} />
       <input name="additionalCosts" type="hidden" value={additionalCosts} />
+      <input name="isFreeOfCharge" type="hidden" value={isFreeOfCharge ? "on" : ""} />
+      <input name="taxMode" type="hidden" value={taxMode} />
+      <input name="taxRate" type="hidden" value={taxRate} />
 
       <Panel>
         <PanelHeader
@@ -210,20 +245,23 @@ export function PurchaseCreateForm({
                       </div>
 
                       <label className="grid gap-1 text-sm">
-                        Costo unitario
+                        {taxMode === "GROSS" ? "Costo unitario con IVA" : "Costo unitario neto"}
                         <input
                           className="rounded border border-[var(--border)] px-3 py-2"
                           min={0}
                           onChange={(event) =>
                             updateUnitCost(item.productId, Number(event.target.value))
                           }
+                          disabled={isFreeOfCharge}
                           type="number"
                           value={item.unitCost}
                         />
                       </label>
 
                       <div className="grid min-w-0 content-end justify-items-end gap-1 text-right text-sm">
-                        <span className="text-[var(--muted)]">Subtotal</span>
+                        <span className="text-[var(--muted)]">
+                          {taxMode === "GROSS" ? "Subtotal bruto" : "Subtotal neto"}
+                        </span>
                         <span className="max-w-full whitespace-nowrap font-semibold">
                           {formatCurrency(lineSubtotal)}
                         </span>
@@ -254,6 +292,7 @@ export function PurchaseCreateForm({
                   Descuento
                   <input
                     className="rounded border border-[var(--border)] px-3 py-2"
+                    disabled={isFreeOfCharge}
                     min={0}
                     onChange={(event) => setDiscount(Math.max(0, Number(event.target.value)))}
                     type="number"
@@ -264,6 +303,7 @@ export function PurchaseCreateForm({
                   Costos adicionales
                   <input
                     className="rounded border border-[var(--border)] px-3 py-2"
+                    disabled={isFreeOfCharge}
                     min={0}
                     onChange={(event) =>
                       setAdditionalCosts(Math.max(0, Number(event.target.value)))
@@ -272,10 +312,48 @@ export function PurchaseCreateForm({
                     value={additionalCosts}
                   />
                 </label>
+                <label className="flex items-center gap-2 rounded border border-[var(--border)] px-3 py-2 text-sm">
+                  <input
+                    checked={isFreeOfCharge}
+                    className="h-4 w-4"
+                    onChange={(event) => toggleFreeOfCharge(event.target.checked)}
+                    type="checkbox"
+                  />
+                  Compra sin costo
+                </label>
+                <label className="grid gap-1 text-sm">
+                  Modo IVA
+                  <select
+                    className="rounded border border-[var(--border)] px-3 py-2"
+                    disabled={isFreeOfCharge}
+                    onChange={(event) =>
+                      setTaxMode(event.target.value as PurchaseTaxMode)
+                    }
+                    value={taxMode}
+                  >
+                    <option value="NET">Costos netos + IVA</option>
+                    <option value="GROSS">Costos con IVA incluido</option>
+                  </select>
+                </label>
+                <label className="grid gap-1 text-sm">
+                  IVA %
+                  <input
+                    className="rounded border border-[var(--border)] px-3 py-2"
+                    disabled={isFreeOfCharge}
+                    max={100}
+                    min={0}
+                    onChange={(event) =>
+                      setTaxRate(Math.max(0, Number(event.target.value)))
+                    }
+                    type="number"
+                    value={taxRate}
+                  />
+                </label>
                 <div className="grid gap-2 border-t border-[var(--border)] pt-3 text-sm">
-                  <TotalRow label="Subtotal" value={totals.subtotal} />
+                  <TotalRow label="Subtotal neto" value={totals.subtotal} />
                   <TotalRow label="Descuento" value={discount} />
                   <TotalRow label="Costos adicionales" value={additionalCosts} />
+                  <TotalRow label={`IVA ${taxRate}%`} value={totals.taxAmount} />
                   <TotalRow label="Total" strong value={totals.total} />
                 </div>
               </div>

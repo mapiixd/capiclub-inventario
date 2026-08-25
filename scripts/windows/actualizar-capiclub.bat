@@ -47,6 +47,17 @@ if errorlevel 1 (
   exit /b 0
 )
 
+if exist "prisma\dev.db" (
+  echo Creando respaldo automatico antes de actualizar...
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; $backupDir=Join-Path (Get-Location) 'backups'; New-Item -ItemType Directory -Force -Path $backupDir | Out-Null; $stamp=(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH-mm-ss-fffZ'); $backupPath=Join-Path $backupDir ('capiclub-auto-update-' + $stamp + '.db'); Copy-Item -LiteralPath 'prisma\dev.db' -Destination $backupPath -Force; Get-ChildItem -LiteralPath $backupDir -Filter 'capiclub-auto-update-*.db' -File | Sort-Object LastWriteTime -Descending | Select-Object -Skip 5 | Remove-Item -Force; Write-Host ('Respaldo automatico creado: ' + (Split-Path -Leaf $backupPath))"
+  if errorlevel 1 (
+    echo No se pudo crear el respaldo automatico. Se cancela la actualizacion.
+    exit /b 1
+  )
+) else (
+  echo No existe prisma\dev.db. Se omite respaldo automatico.
+)
+
 git pull --ff-only origin main
 if errorlevel 1 (
   echo No se pudo aplicar la actualizacion automaticamente.

@@ -9,7 +9,10 @@ import { getActionErrorMessage, type FormActionState } from "@/lib/action-state"
 import { prisma } from "@/lib/db";
 import { uniqueConstraintMessage } from "@/lib/db-errors";
 import { calculateWeightedAverageCost } from "@/lib/purchases/costing";
-import { calculatePurchaseTotals } from "@/lib/purchases/totals";
+import {
+  calculateNetUnitCost,
+  calculatePurchaseTotals,
+} from "@/lib/purchases/totals";
 import {
   addPurchaseItemSchema,
   createPurchaseSchema,
@@ -103,6 +106,9 @@ async function createPurchase(formData: FormData) {
     documentDate: formData.get("documentDate"),
     discount: formData.get("discount") ?? "0",
     additionalCosts: formData.get("additionalCosts") ?? "0",
+    isFreeOfCharge: formData.get("isFreeOfCharge"),
+    taxMode: formData.get("taxMode") ?? "NET",
+    taxRate: formData.get("taxRate") ?? "19",
     notes: formData.get("notes"),
     items: getPurchaseItemsFromForm(formData),
   });
@@ -111,13 +117,29 @@ async function createPurchase(formData: FormData) {
     throw new Error(parsed.error.issues[0]?.message ?? "Datos invalidos.");
   }
 
-  const { subtotal, total } = calculatePurchaseTotals({
-    items: parsed.data.items,
-    discount: parsed.data.discount,
-    additionalCosts: parsed.data.additionalCosts,
+  const purchaseItems = parsed.data.isFreeOfCharge
+    ? parsed.data.items.map((item) => ({ ...item, unitCost: 0 }))
+    : parsed.data.items;
+  const totals = calculatePurchaseTotals({
+    items: purchaseItems,
+    discount: parsed.data.isFreeOfCharge ? 0 : parsed.data.discount,
+    additionalCosts: parsed.data.isFreeOfCharge ? 0 : parsed.data.additionalCosts,
+    isFreeOfCharge: parsed.data.isFreeOfCharge,
+    taxMode: parsed.data.taxMode,
+    taxRate: parsed.data.isFreeOfCharge ? 0 : parsed.data.taxRate,
   });
 
   const purchase = await prisma.$transaction(async (tx) => {
+    const productIds = purchaseItems.map((item) => item.productId);
+    const products = await tx.product.findMany({
+      where: { id: { in: productIds }, status: "ACTIVE", tracksStock: true },
+      select: { id: true },
+    });
+
+    if (products.length !== new Set(productIds).size) {
+      throw new Error("Uno o mas productos no estan disponibles para compras con stock.");
+    }
+
     const lastPurchase = await tx.purchase.findFirst({
       orderBy: { internalNumber: "desc" },
       select: { internalNumber: true },
@@ -132,13 +154,17 @@ async function createPurchase(formData: FormData) {
         documentDate: parseDate(parsed.data.documentDate),
         responsibleUserId: currentUser.id,
         status: "DRAFT",
-        subtotal,
-        discount: parsed.data.discount,
-        additionalCosts: parsed.data.additionalCosts,
-        total,
+        subtotal: totals.subtotal,
+        discount: parsed.data.isFreeOfCharge ? 0 : parsed.data.discount,
+        additionalCosts: parsed.data.isFreeOfCharge ? 0 : parsed.data.additionalCosts,
+        isFreeOfCharge: parsed.data.isFreeOfCharge,
+        taxMode: parsed.data.taxMode,
+        taxRate: parsed.data.isFreeOfCharge ? 0 : parsed.data.taxRate,
+        taxAmount: totals.taxAmount,
+        total: totals.total,
         notes: parsed.data.notes,
         items: {
-          create: parsed.data.items.map((item) => ({
+          create: purchaseItems.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
             unitCost: item.unitCost,
@@ -200,15 +226,22 @@ async function recalculateDraftPurchaseTotals(purchaseId: string) {
     where: { id: purchaseId },
     include: { items: true },
   });
-  const { subtotal, total } = calculatePurchaseTotals({
+  const totals = calculatePurchaseTotals({
     items: purchase.items,
     discount: purchase.discount,
     additionalCosts: purchase.additionalCosts,
+    isFreeOfCharge: purchase.isFreeOfCharge,
+    taxMode: purchase.taxMode === "GROSS" ? "GROSS" : "NET",
+    taxRate: purchase.taxRate,
   });
 
   return prisma.purchase.update({
     where: { id: purchaseId },
-    data: { subtotal, total },
+    data: {
+      subtotal: totals.subtotal,
+      taxAmount: totals.taxAmount,
+      total: totals.total,
+    },
   });
 }
 
@@ -223,6 +256,9 @@ export async function updatePurchaseDraftAction(formData: FormData) {
     documentDate: formData.get("documentDate"),
     discount: formData.get("discount") ?? "0",
     additionalCosts: formData.get("additionalCosts") ?? "0",
+    isFreeOfCharge: formData.get("isFreeOfCharge"),
+    taxMode: formData.get("taxMode") ?? "NET",
+    taxRate: formData.get("taxRate") ?? "19",
     notes: formData.get("notes"),
   });
 
@@ -234,13 +270,17 @@ export async function updatePurchaseDraftAction(formData: FormData) {
   const previous = await prisma.purchase.findUniqueOrThrow({
     where: { id: parsed.data.purchaseId },
   });
-  const { subtotal, total } = calculatePurchaseTotals({
-    items: await prisma.purchaseItem.findMany({
+  const purchaseItems = await prisma.purchaseItem.findMany({
       where: { purchaseId: parsed.data.purchaseId },
       select: { quantity: true, unitCost: true },
-    }),
-    discount: parsed.data.discount,
-    additionalCosts: parsed.data.additionalCosts,
+  });
+  const totals = calculatePurchaseTotals({
+    items: purchaseItems,
+    discount: parsed.data.isFreeOfCharge ? 0 : parsed.data.discount,
+    additionalCosts: parsed.data.isFreeOfCharge ? 0 : parsed.data.additionalCosts,
+    isFreeOfCharge: parsed.data.isFreeOfCharge,
+    taxMode: parsed.data.taxMode,
+    taxRate: parsed.data.isFreeOfCharge ? 0 : parsed.data.taxRate,
   });
   const updated = await prisma.purchase.update({
     where: { id: parsed.data.purchaseId },
@@ -248,10 +288,14 @@ export async function updatePurchaseDraftAction(formData: FormData) {
       supplierId: parsed.data.supplierId,
       supplierDocumentNumber: parsed.data.supplierDocumentNumber,
       documentDate: parseDate(parsed.data.documentDate),
-      discount: parsed.data.discount,
-      additionalCosts: parsed.data.additionalCosts,
-      subtotal,
-      total,
+      discount: parsed.data.isFreeOfCharge ? 0 : parsed.data.discount,
+      additionalCosts: parsed.data.isFreeOfCharge ? 0 : parsed.data.additionalCosts,
+      isFreeOfCharge: parsed.data.isFreeOfCharge,
+      taxMode: parsed.data.taxMode,
+      taxRate: parsed.data.isFreeOfCharge ? 0 : parsed.data.taxRate,
+      taxAmount: totals.taxAmount,
+      subtotal: totals.subtotal,
+      total: totals.total,
       notes: parsed.data.notes,
     },
   });
@@ -296,14 +340,23 @@ export async function addPurchaseItemAction(formData: FormData) {
     throw new Error(parsed.error.issues[0]?.message ?? "Datos invalidos.");
   }
 
-  await assertDraftPurchase(parsed.data.purchaseId);
+  const purchase = await assertDraftPurchase(parsed.data.purchaseId);
+  const product = await prisma.product.findFirst({
+    where: { id: parsed.data.productId, status: "ACTIVE", tracksStock: true },
+    select: { id: true },
+  });
+
+  if (!product) {
+    throw new Error("El producto seleccionado no controla stock o no esta disponible.");
+  }
+  const unitCost = purchase.isFreeOfCharge ? 0 : parsed.data.unitCost;
   const item = await prisma.purchaseItem.create({
     data: {
       purchaseId: parsed.data.purchaseId,
       productId: parsed.data.productId,
       quantity: parsed.data.quantity,
-      unitCost: parsed.data.unitCost,
-      lineSubtotal: parsed.data.quantity * parsed.data.unitCost,
+      unitCost,
+      lineSubtotal: parsed.data.quantity * unitCost,
     },
   });
   const updated = await recalculateDraftPurchaseTotals(parsed.data.purchaseId);
@@ -352,12 +405,13 @@ export async function updatePurchaseItemAction(formData: FormData) {
   });
   await assertDraftPurchase(previous.purchaseId);
 
+  const unitCost = previous.purchase.isFreeOfCharge ? 0 : parsed.data.unitCost;
   const item = await prisma.purchaseItem.update({
     where: { id: parsed.data.purchaseItemId },
     data: {
       quantity: parsed.data.quantity,
-      unitCost: parsed.data.unitCost,
-      lineSubtotal: parsed.data.quantity * parsed.data.unitCost,
+      unitCost,
+      lineSubtotal: parsed.data.quantity * unitCost,
     },
   });
   const updated = await recalculateDraftPurchaseTotals(previous.purchaseId);
@@ -468,11 +522,16 @@ export async function receivePurchaseAction(formData: FormData) {
     for (const item of currentPurchase.items) {
       const previousStock = await getProductStock(item.productId, tx);
       const resultingStock = previousStock + item.quantity;
+      const netUnitCost = calculateNetUnitCost({
+        unitCost: currentPurchase.isFreeOfCharge ? 0 : item.unitCost,
+        taxMode: currentPurchase.taxMode === "GROSS" ? "GROSS" : "NET",
+        taxRate: currentPurchase.taxRate,
+      });
       const averageCost = calculateWeightedAverageCost({
         currentStock: previousStock,
         currentAverageCost: item.product.averageCost,
         incomingQuantity: item.quantity,
-        incomingUnitCost: item.unitCost,
+        incomingUnitCost: netUnitCost,
       });
 
       await tx.inventoryMovement.create({
@@ -493,7 +552,7 @@ export async function receivePurchaseAction(formData: FormData) {
       await tx.product.update({
         where: { id: item.productId },
         data: {
-          lastPurchaseCost: item.unitCost,
+          lastPurchaseCost: netUnitCost,
           averageCost,
         },
       });

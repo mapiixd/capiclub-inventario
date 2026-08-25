@@ -12,6 +12,7 @@ const product = {
   name: "Producto 1",
   salePrice: 1500,
   stock: 3,
+  tracksStock: true,
 };
 
 describe("sale cart", () => {
@@ -22,6 +23,7 @@ describe("sale cart", () => {
         sku: "SKU-1",
         name: "Producto 1",
         stock: 3,
+        tracksStock: true,
         quantity: 1,
         unitPrice: 1500,
         lineDiscount: 0,
@@ -50,6 +52,17 @@ describe("sale cart", () => {
     expect(cart[0]?.quantity).toBe(3);
   });
 
+  it("allows unlimited quantity for products without stock tracking", () => {
+    const unlimitedProduct = { ...product, stock: 0, tracksStock: false };
+    const cart = updateCartItemQuantity(
+      addProductToCart([], unlimitedProduct),
+      unlimitedProduct.id,
+      20,
+    );
+
+    expect(cart[0]?.quantity).toBe(20);
+  });
+
   it("calculates totals and payment difference", () => {
     const totals = calculateCartTotals([
       {
@@ -57,6 +70,7 @@ describe("sale cart", () => {
         sku: "SKU-1",
         name: "Producto 1",
         stock: 3,
+        tracksStock: true,
         quantity: 2,
         unitPrice: 1500,
         lineDiscount: 500,

@@ -38,5 +38,5 @@ export function createBackupFileName(date = new Date()) {
 }
 
 export function isSafeBackupFileName(fileName: string) {
-  return /^capiclub-backup-[A-Za-z0-9_.:-]+\.db$/.test(fileName);
+  return /^capiclub-(backup|auto-update)-[A-Za-z0-9_.:-]+\.db$/.test(fileName);
 }

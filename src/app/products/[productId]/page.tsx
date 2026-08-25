@@ -67,8 +67,12 @@ export default async function ProductDetailPage({
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-[var(--muted)]">Stock actual</p>
-                <p className="text-3xl font-semibold">{stock}</p>
+                <p className="text-sm text-[var(--muted)]">
+                  {product.tracksStock ? "Stock actual" : "Stock"}
+                </p>
+                <p className="text-3xl font-semibold">
+                  {product.tracksStock ? stock : "Sin control"}
+                </p>
               </div>
             </div>
           </div>
@@ -79,7 +83,8 @@ export default async function ProductDetailPage({
             <Info label="Precio venta" value={formatCurrency(product.salePrice)} />
             {canViewCosts ? <Info label="Costo promedio" value={formatCurrency(product.averageCost)} /> : null}
             {canViewCosts ? <Info label="Ultimo costo" value={formatCurrency(product.lastPurchaseCost)} /> : null}
-            <Info label="Stock minimo" value={String(product.minimumStock)} />
+            <Info label="Control de stock" value={product.tracksStock ? "Si" : "No"} />
+            {product.tracksStock ? <Info label="Stock minimo" value={String(product.minimumStock)} /> : null}
             <Info label="Creado por" value={product.createdBy.name} />
             <Info label="Creado" value={formatDateTime(product.createdAt)} />
           </div>

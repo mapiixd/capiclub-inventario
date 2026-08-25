@@ -30,6 +30,7 @@ type ProductOption = {
   name: string;
   salePrice: number;
   stock: number;
+  tracksStock: boolean;
 };
 
 type PaymentMethodOption = {
@@ -198,7 +199,7 @@ export function SaleForm({
                       <div className="min-w-0">
                         <p className="truncate font-medium">{item.name}</p>
                         <p className="text-sm text-[var(--muted)]">
-                          {item.sku} - Stock {item.stock}
+                          {item.sku} - {item.tracksStock ? `Stock ${item.stock}` : "Sin control de stock"}
                         </p>
                         <p className="mt-2 font-semibold">{formatCurrency(lineTotal)}</p>
                       </div>
@@ -216,7 +217,7 @@ export function SaleForm({
                           </button>
                           <input
                             className="w-full border-0 px-2 text-center"
-                            max={item.stock}
+                            max={item.tracksStock ? item.stock : undefined}
                             min={1}
                             onChange={(event) =>
                               updateQuantity(item.productId, Number(event.target.value))
@@ -351,7 +352,7 @@ export function SaleForm({
                         <p className="font-semibold">{formatCurrency(product.salePrice)}</p>
                       </div>
                       <div className="mt-2 flex items-center justify-between text-xs text-[var(--muted)]">
-                        <span>Stock {product.stock}</span>
+                        <span>{product.tracksStock ? `Stock ${product.stock}` : "Sin control de stock"}</span>
                         {inCart ? <span>En carrito: {inCart.quantity}</span> : null}
                       </div>
                     </button>

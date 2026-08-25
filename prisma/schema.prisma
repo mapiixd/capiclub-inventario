@@ -172,6 +172,7 @@ model Product {
   lastPurchaseCost Int                 @default(0)
   salePrice        Int                 @default(0)
   minimumStock     Int                 @default(0)
+  tracksStock      Boolean             @default(true)
   status           ProductStatus       @default(ACTIVE)
   notes            String?
   createdById      String
@@ -206,6 +207,10 @@ model Purchase {
   subtotal               Int            @default(0)
   discount               Int            @default(0)
   additionalCosts        Int            @default(0)
+  isFreeOfCharge         Boolean        @default(false)
+  taxMode                String         @default("NET")
+  taxRate                Int            @default(0)
+  taxAmount              Int            @default(0)
   total                  Int            @default(0)
   notes                  String?
   items                  PurchaseItem[]

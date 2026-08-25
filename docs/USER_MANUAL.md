@@ -17,6 +17,7 @@
 - El SKU identifica el producto y no debe cambiarse.
 - El stock no se edita desde la ficha del producto.
 - Todo cambio de stock debe pasar por compras, ventas, devoluciones u operaciones de inventario.
+- Para productos como `Singles Pokemon`, desmarca `Controla stock` y usa precio unitario 100. Luego puedes vender 20 unidades para cobrar 2.000 sin cargar stock.
 
 ## Ventas
 
@@ -29,6 +30,11 @@
 ## Compras
 
 - Una compra en borrador no modifica stock.
+- Marca `Compra sin costo` cuando solo necesites agregar stock gratuito.
+- Selecciona si los costos ingresados son netos + IVA o si ya incluyen IVA.
+- La tasa de IVA parte en 19%, pero puede quedar en 0 para documentos exentos.
+- Si los costos vienen con IVA incluido, el sistema separa neto e IVA y usa el costo neto para inventario.
+- En una compra sin costo, los costos, IVA y total quedan en 0; al recibirla, el stock sube con costo entrante cero.
 - Al recibir la compra, el stock aumenta y se actualizan costos.
 - Una compra recibida se anula con movimientos compensatorios.
 

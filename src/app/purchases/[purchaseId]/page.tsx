@@ -19,6 +19,11 @@ const purchaseStatusLabels: Record<string, string> = {
   VOID: "Anulada",
 };
 
+const purchaseTaxModeLabels: Record<string, string> = {
+  NET: "Costos netos + IVA",
+  GROSS: "Costos con IVA incluido",
+};
+
 export default async function PurchaseDetailPage({
   params,
 }: {
@@ -44,7 +49,7 @@ export default async function PurchaseDetailPage({
       orderBy: { name: "asc" },
     }),
     prisma.product.findMany({
-      where: { status: "ACTIVE" },
+      where: { status: "ACTIVE", tracksStock: true },
       orderBy: { name: "asc" },
       select: { id: true, sku: true, name: true },
     }),
@@ -86,6 +91,10 @@ export default async function PurchaseDetailPage({
             <Info label="Subtotal" value={formatCurrency(purchase.subtotal)} />
             <Info label="Descuento" value={formatCurrency(purchase.discount)} />
             <Info label="Costos adicionales" value={formatCurrency(purchase.additionalCosts)} />
+            <Info label="Sin costo" value={purchase.isFreeOfCharge ? "Si" : "No"} />
+            <Info label="Modo IVA" value={purchaseTaxModeLabels[purchase.taxMode] ?? purchase.taxMode} />
+            <Info label="IVA %" value={`${purchase.taxRate}%`} />
+            <Info label="IVA" value={formatCurrency(purchase.taxAmount)} />
           </div>
 
           <div className="border-t border-[var(--border)] p-4">
@@ -96,8 +105,12 @@ export default async function PurchaseDetailPage({
                   <tr className="border-b border-[var(--border)] text-left">
                     <th className="p-3">Producto</th>
                     <th className="p-3">Cantidad</th>
-                    <th className="p-3">Costo unitario</th>
-                    <th className="p-3">Subtotal</th>
+                    <th className="p-3">
+                      {purchase.taxMode === "GROSS" ? "Costo unitario con IVA" : "Costo unitario neto"}
+                    </th>
+                    <th className="p-3">
+                      {purchase.taxMode === "GROSS" ? "Subtotal bruto" : "Subtotal neto"}
+                    </th>
                     {canEditDraft ? <th className="p-3">Accion</th> : null}
                   </tr>
                 </thead>
@@ -109,7 +122,7 @@ export default async function PurchaseDetailPage({
                       </td>
                       <td className="p-3">
                         {canEditDraft ? (
-                          <PurchaseItemEditForm item={item} />
+                          <PurchaseItemEditForm item={item} taxMode={purchase.taxMode} />
                         ) : (
                           item.quantity
                         )}

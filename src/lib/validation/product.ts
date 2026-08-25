@@ -28,6 +28,7 @@ export const createProductSchema = z.object({
   lastPurchaseCost: z.coerce.number().int().min(0),
   salePrice: z.coerce.number().int().min(0),
   minimumStock: z.coerce.number().int().min(0),
+  tracksStock: z.preprocess((value) => value === "on" || value === true, z.boolean()),
   notes: optionalFormText,
 });
 

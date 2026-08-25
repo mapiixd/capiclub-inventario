@@ -81,12 +81,12 @@ async function createSpecialInventoryMovement(formData: FormData) {
 
   return prisma.$transaction(async (tx) => {
     const product = await tx.product.findFirst({
-      where: { id: parsed.data.productId, status: "ACTIVE" },
+      where: { id: parsed.data.productId, status: "ACTIVE", tracksStock: true },
       select: { id: true },
     });
 
     if (!product) {
-      throw new Error("El producto seleccionado no esta disponible.");
+      throw new Error("El producto seleccionado no controla stock o no esta disponible.");
     }
 
     const previousStock = await getProductStock(parsed.data.productId, tx);
@@ -159,12 +159,12 @@ async function createInventoryCount(formData: FormData) {
 
   return prisma.$transaction(async (tx) => {
     const products = await tx.product.findMany({
-      where: { id: { in: productIds }, status: "ACTIVE" },
+      where: { id: { in: productIds }, status: "ACTIVE", tracksStock: true },
       select: { id: true },
     });
 
     if (products.length !== productIds.length) {
-      throw new Error("Uno o mas productos no estan disponibles.");
+      throw new Error("Uno o mas productos no controlan stock o no estan disponibles.");
     }
 
     const lastCount = await tx.inventoryCount.findFirst({
@@ -396,6 +396,7 @@ async function createProductOpening(formData: FormData) {
       where: {
         id: parsed.data.inputProductId,
         status: "ACTIVE",
+        tracksStock: true,
         type: ProductType.SEALED,
       },
       select: { id: true, averageCost: true, name: true },
@@ -406,7 +407,7 @@ async function createProductOpening(formData: FormData) {
     }
 
     const outputProducts = await tx.product.findMany({
-      where: { id: { in: outputProductIds }, status: "ACTIVE" },
+      where: { id: { in: outputProductIds }, status: "ACTIVE", tracksStock: true },
       select: { id: true, averageCost: true },
     });
     const outputProductMap = new Map(

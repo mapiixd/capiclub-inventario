@@ -19,15 +19,15 @@
 
 ### Catalogo
 
-- `Product`: SKU unico e inmutable, codigo de barras opcional, nombre, juego, categoria, subcategoria, edicion, marca, idioma, condicion, rareza, variante, tipo, costos, precio, stock minimo, estado, notas.
+- `Product`: SKU unico e inmutable, codigo de barras opcional, nombre, juego, categoria, subcategoria, edicion, marca, idioma, condicion, rareza, variante, tipo, costos, precio, stock minimo, control de stock, estado, notas.
 - `ProductCategory`: categorias y subcategorias.
 - `Game`: juegos TCG o lineas comerciales.
 - `Supplier`: proveedores.
 
 ### Compras
 
-- `Purchase`: numero interno, proveedor, documento, fechas, usuario, estado, subtotal, descuentos, costos adicionales, total, observaciones.
-- `PurchaseItem`: producto, cantidad, costo unitario, subtotal.
+- `Purchase`: numero interno, proveedor, documento, fechas, usuario, estado, subtotal neto, descuentos, costos adicionales, compra sin costo, modo IVA, tasa IVA, monto IVA, total, observaciones.
+- `PurchaseItem`: producto, cantidad, costo unitario ingresado, subtotal de linea.
 
 ### Ventas y pagos
 
@@ -142,4 +142,3 @@ erDiagram
 - `CashSession.cashRegisterId, status`.
 - `Purchase.supplierId, status, receivedAt`.
 - `AuditLog.entity, entityId, createdAt`.
-

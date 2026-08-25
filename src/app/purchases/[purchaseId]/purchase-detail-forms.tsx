@@ -29,6 +29,9 @@ export function PurchaseDraftEditForm({
     documentDate: Date | null;
     discount: number;
     additionalCosts: number;
+    isFreeOfCharge: boolean;
+    taxMode: string;
+    taxRate: number;
     notes: string | null;
   };
   suppliers: SupplierOption[];
@@ -50,6 +53,18 @@ export function PurchaseDraftEditForm({
       <Field label="Fecha documento" name="documentDate" type="date" defaultValue={purchase.documentDate?.toISOString().slice(0, 10) ?? ""} required={false} />
       <Field label="Descuento" name="discount" type="number" defaultValue={String(purchase.discount)} />
       <Field label="Costos adicionales" name="additionalCosts" type="number" defaultValue={String(purchase.additionalCosts)} />
+      <label className="flex items-center gap-2 rounded border border-[var(--border)] px-3 py-2 text-sm">
+        <input className="h-4 w-4" name="isFreeOfCharge" type="checkbox" defaultChecked={purchase.isFreeOfCharge} />
+        Compra sin costo
+      </label>
+      <label className="grid gap-1 text-sm">
+        Modo IVA
+        <select className="rounded border border-[var(--border)] px-3 py-2" name="taxMode" defaultValue={purchase.taxMode} required>
+          <option value="NET">Costos netos + IVA</option>
+          <option value="GROSS">Costos con IVA incluido</option>
+        </select>
+      </label>
+      <Field label="IVA %" name="taxRate" type="number" defaultValue={String(purchase.taxRate)} />
       <label className="grid gap-1 text-sm">
         Observaciones
         <textarea className="min-h-20 rounded border border-[var(--border)] px-3 py-2" name="notes" defaultValue={purchase.notes ?? ""} />
@@ -60,7 +75,13 @@ export function PurchaseDraftEditForm({
   );
 }
 
-export function PurchaseItemEditForm({ item }: { item: { id: string; quantity: number; unitCost: number } }) {
+export function PurchaseItemEditForm({
+  item,
+  taxMode,
+}: {
+  item: { id: string; quantity: number; unitCost: number };
+  taxMode: string;
+}) {
   const [state, formAction] = useActionState(updatePurchaseItemFormAction, initialState);
 
   return (
@@ -68,7 +89,7 @@ export function PurchaseItemEditForm({ item }: { item: { id: string; quantity: n
       <div className="flex gap-2">
         <input name="purchaseItemId" type="hidden" value={item.id} />
         <input className="w-24 rounded border border-[var(--border)] px-2 py-1" min={1} name="quantity" type="number" defaultValue={item.quantity} />
-        <input className="w-28 rounded border border-[var(--border)] px-2 py-1" min={0} name="unitCost" type="number" defaultValue={item.unitCost} />
+        <input aria-label={taxMode === "GROSS" ? "Costo unitario con IVA" : "Costo unitario neto"} className="w-28 rounded border border-[var(--border)] px-2 py-1" min={0} name="unitCost" type="number" defaultValue={item.unitCost} />
         <button className="rounded border border-[var(--border)] px-2 py-1" type="submit">Guardar</button>
       </div>
       <ActionMessage state={state} />

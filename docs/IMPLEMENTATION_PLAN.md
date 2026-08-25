@@ -39,7 +39,7 @@ Verificacion:
 - Stock no se edita desde ficha de producto.
 - Movimientos reconstruyen el stock.
 
-Estado: completada en alcance MVP. Ya existen productos, juegos, categorias, stock derivado, movimientos manuales auditados, busqueda/filtros, detalle con historial por producto, edicion controlada sin modificar SKU ni stock, activacion/desactivacion y alertas de bajo stock/sin stock.
+Estado: completada en alcance MVP. Ya existen productos, juegos, categorias, stock derivado, productos sin control de stock para singles genericos, movimientos manuales auditados, busqueda/filtros, detalle con historial por producto, edicion controlada sin modificar SKU ni stock, activacion/desactivacion y alertas de bajo stock/sin stock.
 
 ## Fase 3: Compras
 
@@ -56,7 +56,7 @@ Verificacion:
 - Compra recibida aumenta stock.
 - Anulacion conserva compra original y compensa stock.
 
-Estado: completada en alcance MVP. Ya existen proveedores, compras en borrador, edicion de encabezado y lineas en borrador, eliminacion auditada de lineas sin efectos, filtros por proveedor/estado/fecha/texto, recepcion transaccional con movimientos de inventario, actualizacion de ultimo costo/costo promedio y anulacion compensatoria. Queda para estabilizacion agregar pruebas de integracion contra base temporal.
+Estado: completada en alcance MVP. Ya existen proveedores, compras en borrador, compras sin costo, edicion de encabezado y lineas en borrador, eliminacion auditada de lineas sin efectos, filtros por proveedor/estado/fecha/texto, recepcion transaccional con movimientos de inventario, IVA con modo neto o incluido, actualizacion de ultimo costo/costo promedio neto y anulacion compensatoria. Queda para estabilizacion agregar pruebas de integracion contra base temporal.
 
 ## Fase 4: Ventas y pagos
 

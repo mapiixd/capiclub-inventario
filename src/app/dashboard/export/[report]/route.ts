@@ -109,7 +109,7 @@ export async function GET(
 
   if (report === "inventory-value") {
     const products = await prisma.product.findMany({
-      where: { status: "ACTIVE" },
+      where: { status: "ACTIVE", tracksStock: true },
       orderBy: { name: "asc" },
       select: {
         id: true,

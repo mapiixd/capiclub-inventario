@@ -17,6 +17,14 @@ Los respaldos se guardan en la carpeta configurada por `BACKUP_DIR`. Por defecto
 
 La pantalla de Respaldos crea un respaldo diario si aun no existe uno para el dia.
 
+Cuando `CapiClub Inventario.exe` detecta una actualizacion disponible desde Git, el script crea antes un respaldo automatico de `prisma/dev.db`.
+
+- Nombre: `capiclub-auto-update-AAAA-MM-DDTHH-mm-ss-fffZ.db`.
+- Ubicacion: carpeta `backups/`.
+- Retencion: se conservan maximo 5 respaldos automaticos de actualizacion.
+- Los respaldos manuales no se borran por esta limpieza automatica.
+- Si existe base de datos pero falla el respaldo, la actualizacion se cancela.
+
 ## Restaurar
 
 1. Entra a Administracion > Respaldos.

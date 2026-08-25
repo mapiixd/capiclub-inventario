@@ -26,6 +26,7 @@ describe("updateProductSchema", () => {
       lastPurchaseCost: 100,
       salePrice: 500,
       minimumStock: 1,
+      tracksStock: "on",
     });
 
     expect(result.success).toBe(false);
@@ -51,9 +52,36 @@ describe("createProductSchema", () => {
       lastPurchaseCost: 0,
       salePrice: 1000,
       minimumStock: 0,
+      tracksStock: "on",
       notes: null,
     });
 
     expect(result.success).toBe(true);
+  });
+
+  it("accepts products without stock tracking", () => {
+    const result = createProductSchema.safeParse({
+      sku: "SINGLES-POKEMON",
+      barcode: null,
+      name: "Singles Pokemon",
+      gameId: null,
+      categoryId: null,
+      edition: null,
+      manufacturer: null,
+      language: null,
+      condition: null,
+      rarity: null,
+      variant: null,
+      type: "SINGLE",
+      averageCost: 0,
+      lastPurchaseCost: 0,
+      salePrice: 100,
+      minimumStock: 0,
+      tracksStock: null,
+      notes: null,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data?.tracksStock).toBe(false);
   });
 });

@@ -40,6 +40,7 @@ type EditableProduct = {
   lastPurchaseCost: number;
   salePrice: number;
   minimumStock: number;
+  tracksStock: boolean;
   notes: string | null;
   status: "ACTIVE" | "INACTIVE";
 };
@@ -87,6 +88,10 @@ export function ProductEditForm({
       <Field label="Ultimo costo" name="lastPurchaseCost" type="number" defaultValue={String(product.lastPurchaseCost)} />
       <Field label="Precio venta" name="salePrice" type="number" defaultValue={String(product.salePrice)} />
       <Field label="Stock minimo" name="minimumStock" type="number" defaultValue={String(product.minimumStock)} />
+      <label className="flex items-center gap-2 rounded border border-[var(--border)] px-3 py-2 text-sm">
+        <input className="h-4 w-4" name="tracksStock" type="checkbox" defaultChecked={product.tracksStock} />
+        Controla stock
+      </label>
       <label className="grid gap-1 text-sm">
         Notas
         <textarea className="min-h-20 rounded border border-[var(--border)] px-3 py-2" name="notes" defaultValue={product.notes ?? ""} />

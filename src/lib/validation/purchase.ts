@@ -14,12 +14,17 @@ export const purchaseItemInputSchema = z.object({
   unitCost: z.coerce.number().int().min(0),
 });
 
+const purchaseTaxModeSchema = z.enum(["NET", "GROSS"]);
+
 export const createPurchaseSchema = z.object({
   supplierId: z.string().min(1, "Selecciona un proveedor."),
   supplierDocumentNumber: optionalFormText,
   documentDate: optionalFormText,
   discount: z.coerce.number().int().min(0),
   additionalCosts: z.coerce.number().int().min(0),
+  isFreeOfCharge: z.preprocess((value) => value === "on" || value === true, z.boolean()),
+  taxMode: purchaseTaxModeSchema,
+  taxRate: z.coerce.number().int().min(0).max(100),
   notes: optionalFormText,
   items: z.array(purchaseItemInputSchema).min(1, "Agrega al menos un producto."),
 });
@@ -35,6 +40,9 @@ export const updatePurchaseDraftSchema = z.object({
   documentDate: optionalFormText,
   discount: z.coerce.number().int().min(0),
   additionalCosts: z.coerce.number().int().min(0),
+  isFreeOfCharge: z.preprocess((value) => value === "on" || value === true, z.boolean()),
+  taxMode: purchaseTaxModeSchema,
+  taxRate: z.coerce.number().int().min(0).max(100),
   notes: optionalFormText,
 });
 

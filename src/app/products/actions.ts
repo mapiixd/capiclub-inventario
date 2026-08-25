@@ -127,6 +127,7 @@ async function createProduct(formData: FormData) {
     lastPurchaseCost: formData.get("lastPurchaseCost"),
     salePrice: formData.get("salePrice"),
     minimumStock: formData.get("minimumStock"),
+    tracksStock: formData.get("tracksStock"),
     notes: formData.get("notes"),
   });
 
@@ -197,6 +198,7 @@ export async function updateProductAction(formData: FormData) {
     lastPurchaseCost: formData.get("lastPurchaseCost"),
     salePrice: formData.get("salePrice"),
     minimumStock: formData.get("minimumStock"),
+    tracksStock: formData.get("tracksStock"),
     notes: formData.get("notes"),
   });
 
@@ -235,6 +237,7 @@ export async function updateProductAction(formData: FormData) {
         lastPurchaseCost: parsed.data.lastPurchaseCost,
         salePrice: parsed.data.salePrice,
         minimumStock: parsed.data.minimumStock,
+        tracksStock: parsed.data.tracksStock,
         notes: parsed.data.notes,
       },
     })

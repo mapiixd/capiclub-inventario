@@ -52,7 +52,7 @@ export default async function InventoryOperationsPage() {
   ];
   const [products, recentMovements, counts, openings] = await Promise.all([
     prisma.product.findMany({
-      where: { status: "ACTIVE" },
+      where: { status: "ACTIVE", tracksStock: true },
       orderBy: { name: "asc" },
       select: {
         id: true,

@@ -64,7 +64,7 @@ export default async function PurchasesPage({
       orderBy: { name: "asc" },
     }),
     prisma.product.findMany({
-      where: { status: "ACTIVE" },
+      where: { status: "ACTIVE", tracksStock: true },
       orderBy: { name: "asc" },
       select: { id: true, sku: true, name: true },
     }),
