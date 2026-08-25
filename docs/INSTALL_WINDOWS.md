@@ -29,6 +29,8 @@ Ejecuta `CapiClub Inventario.exe`. La ventana debe quedar abierta mientras se us
 
 Si el ejecutable no esta disponible, usa `iniciar-capiclub.bat`; ambos terminan ejecutando el mismo flujo de inicio.
 
+Al iniciar, el sistema revisa el puerto `3000`. Si detecta una instancia anterior de CapiClub ejecutandose desde la misma carpeta, la cierra antes de actualizar e iniciar nuevamente.
+
 Para detener la aplicacion, cierra la ventana o ejecuta `detener-capiclub.bat`.
 
 ## Actualizaciones

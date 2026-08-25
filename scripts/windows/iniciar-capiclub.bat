@@ -5,6 +5,18 @@ set "APP_DIR=%~dp0"
 if not exist "%APP_DIR%package.json" set "APP_DIR=%~dp0..\.."
 cd /d "%APP_DIR%"
 
+echo Revisando puerto 3000...
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\liberar-puerto-capiclub.ps1 -AppDirectory "%CD%" -Port 3000
+if errorlevel 2 (
+  pause
+  exit /b 1
+)
+if errorlevel 1 (
+  echo No se pudo revisar el puerto 3000.
+  pause
+  exit /b 1
+)
+
 call scripts\windows\verificar-requisitos.bat
 if errorlevel 1 (
   pause
