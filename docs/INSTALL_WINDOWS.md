@@ -41,11 +41,14 @@ El flujo automatico es:
 
 1. Verifica si existe `.git`.
 2. Ejecuta `git fetch origin main`.
-3. Si hay una version nueva y no existen cambios locales, crea un respaldo automatico de `prisma/dev.db`.
-4. Ejecuta `git pull --ff-only`.
-5. Si cambiaron dependencias, ejecuta `npm install`.
-6. Ejecuta `npm run prisma:generate`, `npx prisma migrate deploy` y `npm run build`.
-7. Inicia la aplicacion.
+3. Si hay una version nueva, revisa cambios locales. Si solo cambio `package-lock.json`, lo restaura automaticamente; si hay otros cambios, cancela la actualizacion.
+4. Si puede continuar, crea un respaldo automatico de `prisma/dev.db`.
+5. Ejecuta `git pull --ff-only`.
+6. Si cambiaron dependencias, ejecuta `npm ci`.
+7. Ejecuta `npm run prisma:generate`, `npx prisma migrate deploy` y `npm run build`.
+8. Inicia la aplicacion.
+
+El instalador y el actualizador usan `npm ci` para respetar las versiones exactas del repositorio y evitar cambios locales accidentales en `package-lock.json`.
 
 El script conserva maximo 5 respaldos automaticos de actualizacion con nombre `capiclub-auto-update-*.db`. Los respaldos manuales no se borran.
 

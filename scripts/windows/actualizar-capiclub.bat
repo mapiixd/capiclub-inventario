@@ -40,10 +40,15 @@ if "%BEFORE%"=="%REMOTE%" (
   exit /b 0
 )
 
-git diff --quiet
-if errorlevel 1 (
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\windows\restaurar-lock-si-es-seguro.ps1
+if errorlevel 2 (
   echo Hay cambios locales sin guardar. No se aplicaran actualizaciones automaticas.
   echo Revisa los cambios manualmente antes de actualizar.
+  exit /b 0
+)
+if errorlevel 1 (
+  echo No se pudo revisar o restaurar cambios locales.
+  echo Se inicia con la version local.
   exit /b 0
 )
 
@@ -69,8 +74,8 @@ echo Actualizacion descargada. Preparando aplicacion...
 
 git diff --name-only "%BEFORE%" HEAD | findstr /i /c:"package-lock.json" /c:"package.json" >nul
 if not errorlevel 1 (
-  echo Dependencias modificadas. Ejecutando npm install...
-  call npm install
+  echo Dependencias modificadas. Ejecutando npm ci...
+  call npm ci
   if errorlevel 1 exit /b 1
 )
 

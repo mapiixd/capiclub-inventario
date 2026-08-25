@@ -16,7 +16,7 @@ if not exist ".env" (
 )
 
 echo Instalando dependencias...
-call npm install
+call npm ci
 if errorlevel 1 exit /b 1
 
 echo Generando Prisma Client...
